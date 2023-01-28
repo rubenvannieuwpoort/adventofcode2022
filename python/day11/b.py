@@ -1,5 +1,6 @@
 class Monkey:
     def __init__(self, monkeys, items, value1, op, value2, divisor, truemonkey, falsemonkey):
+        self.id = len(monkeys)
         self.inspected = 0
         self.monkeys = monkeys
         self.items = items
@@ -10,15 +11,31 @@ class Monkey:
         self.truemonkey = truemonkey
         self.falsemonkey = falsemonkey
 
+    def to_remainder_form(self):
+        for i in range(0, len(self.items)):
+            self.items[i] = self.reduce([self.items[i]] * len(self.monkeys))
+
+    def reduce(self, remainders):
+        assert len(remainders) == len(self.monkeys)
+        for i in range(0, len(remainders)):
+            remainders[i] = remainders[i] % self.monkeys[i].divisor
+        return remainders
+
     def evalval(self, old, x):
         if x == 'old':
             return old
-        return int(x)
+        return [int(x)] * len(self.monkeys)
 
     def evaluate(self, oldvalue, v1, op, v2):
         iv1 = self.evalval(oldvalue, v1)
         iv2 = self.evalval(oldvalue, v2)
-        return iv1 * iv2 if op == '*' else iv1 + iv2
+
+        assert op in ['*', '+']
+
+        if op == '*':
+            return self.reduce([iv1[i] * iv2[i] for i in range(0, len(iv1))])
+        else:
+            return self.reduce([iv1[i] + iv2[i] for i in range(0, len(iv1))])
 
     def accept(self, item):
         self.items.append(item)
@@ -28,8 +45,10 @@ class Monkey:
             item = self.items.pop(0)
             self.inspected += 1
             item = self.evaluate(item, self.value1, self.op, self.value2)
-            item = item // 3
-            self.monkeys[self.truemonkey if item % self.divisor == 0 else self.falsemonkey].items.append(item)
+            if item[self.id] == 0:
+                self.monkeys[self.truemonkey].items.append(item)
+            else:
+                self.monkeys[self.falsemonkey].items.append(item)
 
 
 def parse_monkey(line_iter, monkeys):
@@ -54,10 +73,10 @@ def parse_monkey(line_iter, monkeys):
 def do_round(monkeys):
     for monkey in monkeys:
         monkey.do_round()
-
+    
 
 nr_monkeys = 8
-rounds = 20
+rounds = 10000
 
 
 lines = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))
@@ -67,7 +86,10 @@ monkeys = []
 for _ in range(0, nr_monkeys):
     monkeys.append(parse_monkey(line_iter, monkeys))
 
-for _ in range(0, rounds):
+for monkey in monkeys:
+    monkey.to_remainder_form()
+
+for _ in range(0, 10000):
     do_round(monkeys)
 
 sorted_inspects = list(reversed(sorted(list(map(lambda x: x.inspected, monkeys)))))
