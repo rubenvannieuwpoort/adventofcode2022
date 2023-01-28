@@ -9,15 +9,22 @@ def sgn(x):
         return 1
     return 0
 
+def updated(x, y):
+    if not is_close(x, y):
+        x = (x[0] + sgn(y[0] - x[0]),
+             x[1] + sgn(y[1] - x[1]))
+    return x
+
+
 
 lines = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))
 
-head_position = (0, 0)
-tail_position = (0, 0)
+rope_length = 10
+positions = [(0, 0)] * rope_length
 
 directions = { 'R': (1, 0), 'L': (-1, 0), 'U': (0, 1), 'D': (0, -1) }
 
-visited = { tail_position }
+visited = { (0, 0) }
 
 for line in lines:
     parts = line.split(' ')
@@ -28,11 +35,10 @@ for line in lines:
     step_direction = directions[direction]
 
     for _ in range(0, steps):
-        head_position = (head_position[0] + step_direction[0], head_position[1] + step_direction[1])
-        if not is_close(head_position, tail_position):
-            tail_position = (tail_position[0] + sgn(head_position[0] - tail_position[0]),
-                             tail_position[1] + sgn(head_position[1] - tail_position[1]))
-            visited.add(tail_position)
+        positions[0] = (positions[0][0] + step_direction[0], positions[0][1] + step_direction[1])
+        for i in range(1, rope_length):
+            positions[i] = updated(positions[i], positions[i - 1])
+        visited.add(positions[rope_length - 1])
 
 
 print(len(visited))

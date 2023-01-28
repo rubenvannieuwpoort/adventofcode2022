@@ -2,6 +2,7 @@ def get_row(n):
     global cols
     return list(map(lambda x: n * cols + x, range(0, cols)))
 
+
 def get_col(n):
     global rows, cols
     return list(map(lambda x: x * cols + n, range(0, rows)))
