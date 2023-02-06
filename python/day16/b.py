@@ -1,22 +1,9 @@
-import queue
+from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
 
 
 total_minutes = 26
-
-class PriorityQueue:
-    def __init__(self):
-        self.pq = queue.PriorityQueue()
-
-    def insert(self, item):
-        self.pq.put_nowait(item)
-
-    def retrieve(self):
-        try:
-            return self.pq.get_nowait()
-        except queue.Empty:
-            return None
 
 
 @dataclass(order = True)
@@ -61,18 +48,16 @@ for line in lines:
 distances = { node: {} for node in nodes }
 for node in nodes:
     pq = PriorityQueue()
-    pq.insert((0, node))
-    while True:
-        item = pq.retrieve()
-        if item is None:
-            break
+    pq.put((0, node))
+    while not pq.empty():
+        item = pq.get()
         (distance, candidate) = item
 
         if candidate not in distances[node]:
             distances[node][candidate] = distance
             for nb in neighbours[candidate]:
                 if nb not in distances[node]:
-                    pq.insert((distance + 1, nb))
+                    pq.put((distance + 1, nb))
 
 # filter out valves without pressure to trim down the tree a bit
 distances = { k: { kk: vv for (kk, vv) in v.items() if nodes[kk] > 0 } for (k, v) in distances.items() }
@@ -81,13 +66,13 @@ closed_valves = [ n for n in nodes if nodes[n] > 0 ]
 closed_valves.sort(key=lambda x: nodes[x], reverse=True)
 
 pq = PriorityQueue()
-pq.insert(State(0, closed_valves, 'AA', 1, 'AA', 1))
+pq.put(State(0, closed_valves, 'AA', 1, 'AA', 1))
 
 best_score = 0
-while True:
-    c: State = pq.retrieve()
+while not pq.empty():
+    c: State = pq.get()
 
-    if c == None or -c.max_score < best_score:
+    if -c.max_score < best_score:
         break
 
     if c.score > best_score:
@@ -108,7 +93,7 @@ while True:
                 dis = distances[c.player_position][nb]
                 cv.remove(nb)
                 score = c.score + (nodes[nb] * (total_minutes - current_minute - dis))
-                pq.insert(State(score, cv, nb, current_minute + dis + 1, c.elephant_position, c.elephant_free))
+                pq.put(State(score, cv, nb, current_minute + dis + 1, c.elephant_position, c.elephant_free))
     elif c.elephant_free == current_minute:
         for nb in c.closed_valves:
             if nb in distances[c.elephant_position]:
@@ -116,7 +101,7 @@ while True:
                 dis = distances[c.elephant_position][nb]
                 cv.remove(nb)
                 score = c.score + (nodes[nb] * (total_minutes - current_minute - dis))
-                pq.insert(State(score, cv, c.player_position, c.player_free, nb, current_minute + dis + 1))
+                pq.put(State(score, cv, c.player_position, c.player_free, nb, current_minute + dis + 1))
     else:
         raise Exception('This should never happen')
 

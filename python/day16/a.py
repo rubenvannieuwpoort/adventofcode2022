@@ -1,22 +1,8 @@
-import queue
+from queue import PriorityQueue
 from dataclasses import dataclass, field
-from typing import Any
 
 
 total_minutes = 30
-
-class PriorityQueue:
-    def __init__(self):
-        self.pq = queue.PriorityQueue()
-
-    def insert(self, item):
-        self.pq.put_nowait(item)
-
-    def retrieve(self):
-        try:
-            return self.pq.get_nowait()
-        except queue.Empty:
-            return None
 
 
 @dataclass(order = True)
@@ -56,9 +42,9 @@ for line in lines:
 distances = { node: {} for node in nodes }
 for node in nodes:
     pq = PriorityQueue()
-    pq.insert((0, node))
-    while True:
-        item = pq.retrieve()
+    pq.put((0, node))
+    while not pq.empty():
+        item = pq.get()
         if item is None:
             break
         (distance, candidate) = item
@@ -67,7 +53,7 @@ for node in nodes:
             distances[node][candidate] = distance
             for nb in neighbours[candidate]:
                 if nb not in distances[node]:
-                    pq.insert((distance + 1, nb))
+                    pq.put((distance + 1, nb))
 
 # filter out valves without pressure to trim down the tree a bit
 distances = { k: { kk: vv for (kk, vv) in v.items() if nodes[kk] > 0 } for (k, v) in distances.items() }
@@ -76,13 +62,13 @@ closed_valves = [ n for n in nodes if nodes[n] > 0 ]
 closed_valves.sort(key=lambda x: nodes[x], reverse=True)
 
 pq = PriorityQueue()
-pq.insert(State(0, closed_valves, 'AA', 1))
+pq.put(State(0, closed_valves, 'AA', 1))
 
 best_score = 0
-while True:
-    c: State = pq.retrieve()
+while not pq.empty():
+    c: State = pq.get()
 
-    if c == None or -c.max_score < best_score:
+    if -c.max_score < best_score:
         break
 
     if c.score > best_score:
@@ -97,6 +83,6 @@ while True:
             dis = distances[c.current_position][nb]
             cv.remove(nb)
             score = c.score + (nodes[nb] * (total_minutes - c.current_minute - dis))
-            pq.insert(State(score, cv, nb, c.current_minute + dis + 1))
+            pq.put(State(score, cv, nb, c.current_minute + dis + 1))
 
 print(best_score)
