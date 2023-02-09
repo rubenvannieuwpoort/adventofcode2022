@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from multiprocessing import Pool
 from datetime import datetime
 from functools import cache
 
@@ -55,5 +54,4 @@ def mapfunc(t):
     return compute_contract(*t)
 
 arguments = [tuple(nums(line)) for line in lines]
-with Pool(8) as p:
-   print(sum(p.map(mapfunc, arguments)))
+print(sum(map(mapfunc, arguments)))
