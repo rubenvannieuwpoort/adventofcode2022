@@ -38,7 +38,8 @@ for y, line in enumerate(lines):
         if ch == '#':
             elfs.append(Elf((x, y)))
 
-for _ in range(0, 10):
+round = 1
+while True:
     # first half: propose
     elf_positions = set(elf.pos for elf in elfs)
     for elf in elfs:
@@ -55,16 +56,18 @@ for _ in range(0, 10):
                 refused_proposals.add(elf.proposed)
 
     # second half: move
+    elf_moved = False
     for elf in elfs:
         if elf.proposed and elf.proposed in accepted_proposals:
             elf.pos = elf.proposed
+            elf_moved = True
+
+    if not elf_moved:
+        break
+
+    round += 1
 
     # rotate preferred direction
     direction_index = direction_index[1:] + [direction_index[0]]
 
-min_x = min(elf.pos[0] for elf in elfs)
-max_x = max(elf.pos[0] for elf in elfs)
-min_y = min(elf.pos[1] for elf in elfs)
-max_y = max(elf.pos[1] for elf in elfs)
-
-print((max_x - min_x + 1) * (max_y - min_y + 1) - len(elfs))
+print(round)
