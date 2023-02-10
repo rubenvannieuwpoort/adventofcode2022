@@ -48,5 +48,5 @@ for (sensor_position, beacon_position) in sensor_data:
     candidates = positions_at_distance(sensor_position, d + 1)
     for candidate in candidates:
         if can_be_distress_beacon(candidate):
-            print(candidate)
+            print(candidate[0] * 4000000 + candidate[1])
             exit(0)
