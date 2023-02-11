@@ -28,7 +28,6 @@ y = height + 3
 s = 0
 cc = 0
 ss = 0
-# line = '>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>'
 ll = len(line)
 while True:
     char = line[cc % ll]
