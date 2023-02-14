@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from functools import cache
+from functools import lru_cache
 
 
 @dataclass(frozen=True, eq=True)
@@ -16,7 +16,7 @@ def nums(line):
     return list(map(lambda x: int(x), filter(lambda x: x.isdigit(), re.split(' |:', line))))
 
 
-@cache
+@lru_cache(maxsize=134217728)
 def f(costs, ore_bots, ore, clay_bots, clay, obs_bots, obs, geode_bots, geodes, minutes_left):
     assert ore >= 0 and clay >= 0 and obs >= 0 and geodes >= 0
 
