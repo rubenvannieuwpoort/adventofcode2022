@@ -39,13 +39,7 @@ def f(costs, ore_bots, ore, clay_bots, clay, obs_bots, obs, geode_bots, geodes, 
 def compute_contract(id, ore_bot_cost, clay_bot_cost, obs_bot_cost_1, obs_bot_cost_2, geode_bot_cost_1, geode_bot_cost_2):
     costs = Costs(ore_bot_cost, clay_bot_cost, (obs_bot_cost_1, obs_bot_cost_2), (geode_bot_cost_1, geode_bot_cost_2))
     best_score = f(costs, 1, 0, 0, 0, 0, 0, 0, 0, 24)
-    log(f'{id}: {best_score}')
     return id * best_score
-
-
-def log(msg):
-    time = datetime.now().strftime("%H:%M:%S")
-    print(f'{time}: {msg}')
 
 
 lines = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))
