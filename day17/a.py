@@ -44,28 +44,41 @@ class State:
         return False
 
 
+class Game:
+    def __init__(self):
+        self.dir_id = 0
+        self.shape_id = 0
+        self.t = 0
+        self.total_blocks = 0
+        self.state = State()
+        self.state.set_shape(shapes[0])
+
+    def do_block(self):
+        while True:
+            if direction[self.dir_id] == '<':
+                self.state.move_left()
+            if direction[self.dir_id] == '>':
+                self.state.move_right()
+
+            self.dir_id = (self.dir_id + 1) % len(direction)
+
+            if not self.state.move_down():
+                break
+
+        self.shape_id = (self.shape_id + 1) % 5
+        self.total_blocks += 1
+        self.state.set_shape(shapes[self.shape_id])
+
+    def get_height(self):
+        return self.state.height
+
+
 direction = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))[0]
 shapes = [ 0b00000000000000000000000000111100 * OFFSET, 0b00000000000100000011100000010000 * OFFSET, 0b00000000000010000000100000111000 * OFFSET, 0b00100000001000000010000000100000 * OFFSET, 0b00000000000000000011000000110000 * OFFSET ]
 
-s = 0
-t = 0
-total = 0
-state = State()
-state.set_shape(shapes[s])
+g = Game()
 
-while True:
-    if direction[t] == '<':
-        r = state.move_left()
-    if direction[t] == '>':
-        r = state.move_right()
+while g.total_blocks < 2022:
+    g.do_block()
 
-    t = (t + 1) % len(direction)
-
-    if not state.move_down():
-        s = (s + 1) % 5
-        total += 1
-        state.set_shape(shapes[s])
-        if total == 2022:
-            break
-
-print(state.height)
+print(g.get_height())
