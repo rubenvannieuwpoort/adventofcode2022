@@ -1,58 +1,71 @@
-def collides(x, y, shape):
-    global tower
-    if x < 0 or y < 0:
-        return True
-    for yy in range(0, 4):
-        for xx in range(0, 4):
-            if (shape[yy][xx] and (x + xx > 6 or tower[y + yy][x + xx])):
-                return True
-    return False
+HISTORY_LENGTH = 37
+MAX = 256 ** HISTORY_LENGTH
+WALLS_CONSTANT = ((256**7 - 1) // 255) * MAX
+OFFSET = 256 ** (HISTORY_LENGTH + 3)
+WALL = 256 ** (HISTORY_LENGTH + 6)
+MASK = 254 * MAX
 
-def settower(x, y):
-    global tower, height
-    tower[y][x] = True
-    height = max(height, y + 1)
+class State:
+    def __init__(self):
+        self.state = MAX - 1 + WALLS_CONSTANT
+        self.x = 0
+        self.shape = 0
+        self.height = 0
 
-def toshape(shape):
-    return list(map(lambda x: list(map(lambda y: y == '#', x)), shape.split('\n')))
+    def set_shape(self, shape):
+        self.x = 2
+        self.shape = shape
 
-line = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))[0]
+    def move_left(self):
+        candidate_shape = self.shape << 1
+        if self.x > 0 and candidate_shape & self.state == 0:
+            self.shape = candidate_shape
+            self.x -= 1
+            return True
+        return False
 
-shapes = list(map(toshape, ['####\n    \n    \n    ', ' #  \n### \n #  \n    ', '### \n  # \n  # \n    ', '#   \n#   \n#   \n#   ', '##  \n##  \n    \n    ']))
+    def move_right(self):
+        candidate_shape = self.shape >> 1
+        if candidate_shape & self.state == 0:
+            self.shape = candidate_shape
+            self.x += 1
+            return True
+        return False
 
-tower = [[False] * 7 for _ in range(0, 10000)]
+    def move_down(self):
+        candidate_shape = self.shape >> 8
+        if candidate_shape & self.state == 0:
+            self.shape = candidate_shape
+            return True
+        self.state |= self.shape
+        while self.state & MASK:
+            self.state = (self.state >> 8) | WALL
+            self.height += 1
+        return False
 
-height = 0
-x = 2
-y = height + 3
+
+direction = list(map(lambda x: x.rstrip(), open('input.txt', 'r').readlines()))[0]
+shapes = [ 0b00000000000000000000000000111100 * OFFSET, 0b00000000000100000011100000010000 * OFFSET, 0b00000000000010000000100000111000 * OFFSET, 0b00100000001000000010000000100000 * OFFSET, 0b00000000000000000011000000110000 * OFFSET ]
+
 s = 0
-cc = 0
-ss = 0
-ll = len(line)
+t = 0
+total = 0
+state = State()
+state.set_shape(shapes[s])
+
 while True:
-    char = line[cc % ll]
-    cc += 1
+    if direction[t] == '<':
+        r = state.move_left()
+    if direction[t] == '>':
+        r = state.move_right()
 
-    xx = 0
-    if char == '<':
-        xx = -1
-    if char == '>':
-        xx = 1
+    t = (t + 1) % len(direction)
 
-    if not collides(x + xx, y, shapes[s]):
-        x += xx
-    if not collides(x, y - 1, shapes[s]):
-        y -= 1
-    else:
-        for yy in range(0, 4):
-            for xx in range(0, 4):
-                if shapes[s][yy][xx]:
-                    settower(x + xx, y + yy)
+    if not state.move_down():
         s = (s + 1) % 5
-        ss += 1
-        if ss == 2022:
+        total += 1
+        state.set_shape(shapes[s])
+        if total == 2022:
             break
-        x = 2
-        y = height + 3
 
-print(height)
+print(state.height)
